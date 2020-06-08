@@ -1,7 +1,16 @@
+var record_animation = false;
+var name = "image_"
+var total_frames = 200;
+var frame = 0;
+var loop = 0;
+var total_time = 2*Math.PI;
+var rate = total_time/total_frames;
+var time = 0;
+
 var size = 25;
 
-var x_center = window.innerWidth/2;
-var y_center = window.innerHeight/2;
+var x_center = 500/2;
+var y_center = 500/2;
 
 var get_mouse_pos = true;
 var get_touch_pos = false;
@@ -9,8 +18,11 @@ var get_touch_pos = false;
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 
+const fps = 30;
+var stop_animation = false;
+var fpsInterval, startTime, now, then, elapsed;
 
-draw();
+startAnimating(50);
 
 function draw() {
 
@@ -45,11 +57,11 @@ function draw() {
 
     
   
-    canvas.style.width = window.innerWidth + 'px'  ;
-    canvas.style.height = window.innerHeight + 'px';
+    canvas.style.width = '500' + 'px'  ;
+    canvas.style.height = '500' + 'px';
   
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = 500; //window.innerWidth;
+    canvas.height = 500; //window.innerHeight;
   
     let min = Math.min(canvas.width, canvas.height);
     
@@ -77,7 +89,7 @@ function draw() {
         }
     }
 
-    window.requestAnimationFrame(draw);
+    //window.requestAnimationFrame(draw);
 }
 
 function plus(x, y, x_shift, y_shift, size, line_width, color) {
@@ -109,3 +121,61 @@ function getTouchPosition(canvas, event) {
     x_center = touch.clientX;
     y_center = touch.clientY;   
 }
+
+function startAnimating(fps) {
+    
+    fpsInterval = 1000/fps;
+    then = window.performance.now();
+    startTime = then;
+    
+    animate();
+ }
+ 
+ function animate(newtime) {
+    
+     requestAnimationFrame(animate);
+ 
+     now = newtime;
+     elapsed = now - then;
+ 
+     if (elapsed > fpsInterval) {
+        then = now - (elapsed % fpsInterval);
+     
+        draw(); 
+        
+        frame = (frame+1)%total_frames;
+        time = rate*frame;
+
+        x_center = 250 + 200*Math.cos(time);
+        y_center = 250 + 200*Math.sin(time);
+
+
+        if(record_animation) {
+
+            if (loop === 1) { 
+            let frame_number = frame.toString().padStart(total_frames.toString().length, '0');
+            let filename = name+frame_number+'.png'
+                
+            dataURL = canvas.toDataURL();
+            var element = document.createElement('a');
+            element.setAttribute('href', dataURL);
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            }
+
+            if (frame + 1 === total_frames) {
+                loop += 1;
+            }
+
+            if (loop === 2) { stop_animation = true }
+        }
+    }
+
+    if (stop_animation) {
+        return;
+    }
+   
+ }
